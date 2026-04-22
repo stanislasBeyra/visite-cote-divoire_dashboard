@@ -5,6 +5,12 @@ export const metadata: Metadata = {
   title: "Catalogue",
 };
 
+type CatalogueSearchParams = {
+  q?: string;
+  statut?: string;
+  create?: string;
+};
+
 const catalogueKpis = [
   { label: "Fiches actives", value: "128", hint: "18 destinations, 39 hebergements, 71 experiences" },
   { label: "En relecture", value: "6", hint: "Validation editoriale en attente" },
@@ -61,7 +67,33 @@ function statusClass(status: (typeof catalogueRows)[number]["statut"]) {
   return "text-faint";
 }
 
-export default function DashboardCataloguePage() {
+export default async function DashboardCataloguePage({
+  searchParams,
+}: {
+  searchParams?: Promise<CatalogueSearchParams>;
+}) {
+  const resolved = (await searchParams) ?? {};
+  const query = (resolved.q ?? "").trim().toLowerCase();
+  const statut = resolved.statut ?? "all";
+  const showCreate = resolved.create === "1";
+
+  const filteredRows = catalogueRows.filter((row) => {
+    const matchQuery =
+      query.length === 0 ||
+      row.nom.toLowerCase().includes(query) ||
+      row.zone.toLowerCase().includes(query) ||
+      row.type.toLowerCase().includes(query);
+    const matchStatut = statut === "all" || row.statut === statut;
+    return matchQuery && matchStatut;
+  });
+
+  const allHref = query ? `?q=${encodeURIComponent(query)}&statut=all` : "?statut=all";
+  const reviewHref = query
+    ? `?q=${encodeURIComponent(query)}&statut=${encodeURIComponent("En relecture")}`
+    : `?statut=${encodeURIComponent("En relecture")}`;
+  const createHref = `?q=${encodeURIComponent(query)}&statut=${encodeURIComponent(statut)}&create=1`;
+  const closeCreateHref = `?q=${encodeURIComponent(query)}&statut=${encodeURIComponent(statut)}`;
+
   return (
     <section className="space-y-8">
       <div className="border-b border-line pb-5">
@@ -102,24 +134,33 @@ export default function DashboardCataloguePage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
+            <form method="get" className="mr-1">
+              <input
+                type="search"
+                name="q"
+                defaultValue={resolved.q ?? ""}
+                placeholder="Rechercher fiche ou zone"
+                className="w-[220px] rounded-[4px] border border-line bg-background px-3 py-1.5 text-xs text-foreground outline-none placeholder:text-faint"
+              />
+            </form>
+            <Link
+              href={allHref}
               className="rounded-[4px] border border-line px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.08em] text-muted transition-colors hover:text-foreground"
             >
               Tous
-            </button>
-            <button
-              type="button"
+            </Link>
+            <Link
+              href={reviewHref}
               className="rounded-[4px] border border-line px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.08em] text-muted transition-colors hover:text-foreground"
             >
               A relire
-            </button>
-            <button
-              type="button"
+            </Link>
+            <Link
+              href={createHref}
               className="rounded-[4px] border border-line bg-foreground px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.08em] text-background"
             >
               + Nouvelle fiche
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -139,7 +180,7 @@ export default function DashboardCataloguePage() {
         </div>
 
         <div className="divide-y divide-line">
-          {catalogueRows.map((row) => (
+          {filteredRows.map((row) => (
             <div
               key={row.nom}
               className="grid items-center gap-x-4 py-3 text-[13px]"
@@ -159,6 +200,9 @@ export default function DashboardCataloguePage() {
               <span className="mono text-right text-muted">{row.maj}</span>
             </div>
           ))}
+          {filteredRows.length === 0 ? (
+            <p className="py-5 text-sm text-muted">Aucun resultat pour ce filtre.</p>
+          ) : null}
         </div>
       </div>
 
@@ -200,14 +244,47 @@ export default function DashboardCataloguePage() {
         </div>
       </div>
 
-      <div>
-        <Link
-          href="/dashboard"
-          className="mono inline-flex rounded-[4px] border border-line px-3 py-1.5 text-[11px] uppercase tracking-[0.08em] text-muted transition-colors hover:text-foreground"
-        >
-          Retour a la vue d&apos;ensemble
-        </Link>
-      </div>
+      {showCreate ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <Link
+            href={closeCreateHref}
+            className="absolute inset-0 bg-foreground/45"
+            aria-label="Fermer le modal"
+          />
+          <div className="relative w-full max-w-xl rounded-[14px] border border-line bg-surface p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[16px] font-medium tracking-[-0.01em] text-foreground">Nouvelle fiche catalogue</p>
+                <p className="mt-1 text-xs text-muted">
+                  Cree une fiche destination, hebergement ou experience.
+                </p>
+              </div>
+              <Link href={closeCreateHref} className="text-xs text-muted hover:text-foreground">
+                Fermer
+              </Link>
+            </div>
+            <div className="mt-4 grid gap-2 md:grid-cols-3">
+              <input className="rounded-[4px] border border-line bg-background px-3 py-2 text-xs" placeholder="Nom de la fiche" />
+              <input className="rounded-[4px] border border-line bg-background px-3 py-2 text-xs" placeholder="Type" />
+              <input className="rounded-[4px] border border-line bg-background px-3 py-2 text-xs" placeholder="Zone" />
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <Link
+                href={closeCreateHref}
+                className="rounded-[4px] border border-line px-3 py-1.5 text-xs text-muted transition-colors hover:text-foreground"
+              >
+                Annuler
+              </Link>
+              <button
+                type="button"
+                className="rounded-[4px] border border-line bg-foreground px-3 py-1.5 text-xs text-background"
+              >
+                Enregistrer
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

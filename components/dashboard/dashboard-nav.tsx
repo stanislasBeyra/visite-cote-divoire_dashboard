@@ -44,9 +44,11 @@ function pickIcon(segment: (typeof items)[number]["segment"]) {
 
 export function DashboardNav({
   variant = "sidebar",
+  collapsed = false,
   className,
 }: {
   variant?: "sidebar" | "bar";
+  collapsed?: boolean;
   className?: string;
 }) {
   const pathname = usePathname();
@@ -70,18 +72,22 @@ export function DashboardNav({
             className={cn(
               "flex items-center gap-2 border border-transparent text-[13px] transition-colors duration-[180ms] ease-[cubic-bezier(0.2,0.7,0.2,1)]",
               variant === "sidebar" && "gap-3 px-3 py-2.5",
+              variant === "sidebar" && collapsed && "justify-center px-2",
               variant === "bar" && "px-2.5 py-2",
               active
                 ? "border-line bg-foreground/[0.04] text-foreground"
                 : "text-muted hover:border-line hover:bg-hover hover:text-foreground",
             )}
             style={{ borderRadius: "var(--radius-sm, 7px)" }}
+            title={collapsed && variant === "sidebar" ? label : undefined}
           >
             <span className="shrink-0 text-foreground opacity-80">
               <Icon size={16} strokeWidth={1.4} />
             </span>
-            <span className="min-w-0 flex-1 tracking-tight">{label}</span>
-            {badge ? (
+            {!(collapsed && variant === "sidebar") ? (
+              <span className="min-w-0 flex-1 tracking-tight">{label}</span>
+            ) : null}
+            {badge && !(collapsed && variant === "sidebar") ? (
               <span className="mono shrink-0 rounded-[4px] bg-chip px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted">
                 {badge}
               </span>

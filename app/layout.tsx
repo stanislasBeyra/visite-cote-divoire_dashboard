@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -21,6 +22,7 @@ const instrumentSerif = Instrument_Serif({
 });
 
 const siteName = "Abidjan J'adore";
+const themeStorageKey = "abj-theme";
 
 export const metadata: Metadata = {
   title: {
@@ -50,6 +52,7 @@ export default function RootLayout({
       data-theme="light"
       data-density="normal"
       data-typo="mixed"
+      data-scroll-behavior="smooth"
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} h-full scroll-smooth antialiased`}
     >
@@ -58,6 +61,57 @@ export default function RootLayout({
         suppressHydrationWarning
         className="min-h-full flex flex-col bg-background text-foreground font-sans"
       >
+        <Script id="theme-init" strategy="beforeInteractive">{`
+          (function () {
+            try {
+              var root = document.documentElement;
+              var stored = localStorage.getItem("${themeStorageKey}");
+              var next = stored === "dark" ? "dark" : "light";
+              root.setAttribute("data-theme", next);
+              root.classList.toggle("dark", next === "dark");
+            } catch (e) {}
+          })();
+        `}</Script>
+        <Script id="strip-ext-attrs" strategy="afterInteractive">{`
+          (function () {
+            try {
+              var strip = function (root) {
+                if (!root || !root.querySelectorAll) return;
+                var nodes = root.querySelectorAll("[bis_skin_checked], [bis_register], [__processed_]");
+                for (var i = 0; i < nodes.length; i++) {
+                  var el = nodes[i];
+                  for (var j = el.attributes.length - 1; j >= 0; j--) {
+                    var name = el.attributes[j].name;
+                    if (name.indexOf("bis_") === 0 || name.indexOf("__processed_") === 0) {
+                      el.removeAttribute(name);
+                    }
+                  }
+                }
+              };
+              strip(document);
+              var mo = new MutationObserver(function (muts) {
+                for (var i = 0; i < muts.length; i++) {
+                  var m = muts[i];
+                  if (m.type === "attributes" && m.target && m.target.removeAttribute) {
+                    var n = m.attributeName || "";
+                    if (n.indexOf("bis_") === 0 || n.indexOf("__processed_") === 0) {
+                      m.target.removeAttribute(n);
+                    }
+                  } else if (m.type === "childList") {
+                    m.addedNodes.forEach(function (n) {
+                      if (n.nodeType === 1) strip(n);
+                    });
+                  }
+                }
+              });
+              mo.observe(document.documentElement, {
+                subtree: true,
+                childList: true,
+                attributes: true,
+              });
+            } catch (e) {}
+          })();
+        `}</Script>
         {children}
       </body>
     </html>

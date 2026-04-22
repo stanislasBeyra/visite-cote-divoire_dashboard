@@ -7,6 +7,8 @@ export interface ThemeToggleProps {
   className?: string;
 }
 
+const themeStorageKey = "abj-theme";
+
 /** Bascule `data-theme` (+ classe `dark`) sur `<html>`. */
 export function ThemeToggle({ className }: ThemeToggleProps) {
   const toggle = () => {
@@ -14,6 +16,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
     const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
     root.setAttribute("data-theme", next);
     root.classList.toggle("dark", next === "dark");
+    window.localStorage.setItem(themeStorageKey, next);
   };
 
   return (

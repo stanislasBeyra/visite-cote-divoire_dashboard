@@ -32,7 +32,7 @@ export default function DashboardAidePage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-[14px] border border-line bg-surface p-5">
+        <div className="rounded-[4px] border border-line bg-surface p-5">
           <h2 className="text-[15px] font-medium tracking-[-0.01em] text-foreground">Base documentaire</h2>
           <ul className="mt-3 divide-y divide-line border border-line">
             {docs.map((doc) => (
@@ -44,7 +44,7 @@ export default function DashboardAidePage() {
           </ul>
         </div>
 
-        <div className="rounded-[14px] border border-line bg-surface p-5">
+        <div className="rounded-[4px] border border-line bg-surface p-5">
           <h2 className="text-[15px] font-medium tracking-[-0.01em] text-foreground">Tickets support</h2>
           <div
             className="mono mt-3 grid gap-x-4 border-b border-line pb-2 text-[11px] uppercase tracking-[0.06em] text-muted"
@@ -72,7 +72,7 @@ export default function DashboardAidePage() {
         </div>
       </div>
 
-      <div className="rounded-[14px] border border-line bg-surface p-5">
+      <div className="rounded-[4px] border border-line bg-surface p-5">
         <h3 className="text-[15px] font-medium tracking-[-0.01em] text-foreground">Contacts</h3>
         <p className="mt-2 text-sm text-muted">Support technique: support@visitci.com - SLA: 4h</p>
         <p className="text-sm text-muted">Produit: product@visitci.com - SLA: 24h</p>

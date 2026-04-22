@@ -120,3 +120,42 @@ body {
 .ds-link-quiet:hover {
   color: var(--foreground);
 }
+
+.ds-reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 620ms var(--ease-ds),
+    transform 620ms var(--ease-ds);
+  will-change: opacity, transform;
+}
+
+.ds-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ds-reveal-delay-1.is-visible {
+  transition-delay: 80ms;
+}
+
+.ds-reveal-delay-2.is-visible {
+  transition-delay: 160ms;
+}
+
+.ds-reveal-delay-3.is-visible {
+  transition-delay: 240ms;
+}
+
+.ds-reveal-delay-4.is-visible {
+  transition-delay: 320ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-reveal,
+  .ds-reveal.is-visible {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

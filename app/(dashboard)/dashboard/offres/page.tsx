@@ -5,6 +5,12 @@ export const metadata: Metadata = {
   title: "Promotions",
 };
 
+type OffresSearchParams = {
+  q?: string;
+  statut?: string;
+  create?: string;
+};
+
 const promoKpis = [
   { label: "Campagnes actives", value: "9", hint: "3 e-mail, 2 push, 4 codes promo" },
   { label: "CA attribue", value: "18,2 M FCFA", hint: "+14% sur 30 jours" },
@@ -19,7 +25,32 @@ const campaigns = [
   { nom: "Relance paniers abandonnes", canal: "Automation", statut: "Actif", cvr: "9,3%", ca: "1,4 M FCFA" },
 ] as const;
 
-export default function DashboardOffresPage() {
+export default async function DashboardOffresPage({
+  searchParams,
+}: {
+  searchParams?: Promise<OffresSearchParams>;
+}) {
+  const resolved = (await searchParams) ?? {};
+  const query = (resolved.q ?? "").trim().toLowerCase();
+  const statut = resolved.statut ?? "all";
+  const showCreate = resolved.create === "1";
+
+  const filteredRows = campaigns.filter((row) => {
+    const matchQuery =
+      query.length === 0 ||
+      row.nom.toLowerCase().includes(query) ||
+      row.canal.toLowerCase().includes(query);
+    const matchStatus = statut === "all" || row.statut.toLowerCase() === statut.toLowerCase();
+    return matchQuery && matchStatus;
+  });
+
+  const allHref = query ? `?q=${encodeURIComponent(query)}&statut=all` : "?statut=all";
+  const activeHref = query
+    ? `?q=${encodeURIComponent(query)}&statut=Actif`
+    : "?statut=Actif";
+  const createHref = `?q=${encodeURIComponent(query)}&statut=${encodeURIComponent(statut)}&create=1`;
+  const closeCreateHref = `?q=${encodeURIComponent(query)}&statut=${encodeURIComponent(statut)}`;
+
   return (
     <section className="space-y-8">
       <div className="border-b border-line pb-5">
@@ -49,12 +80,35 @@ export default function DashboardOffresPage() {
             <h2 className="text-[15px] font-medium tracking-[-0.01em] text-foreground">Campagnes en cours</h2>
             <p className="mt-1 text-xs text-muted">Performance par canal et statut d execution.</p>
           </div>
-          <button
-            type="button"
-            className="rounded-[4px] border border-line bg-foreground px-3 py-1.5 text-xs text-background"
-          >
+          <div className="flex items-center gap-2">
+            <form method="get">
+              <input
+                type="search"
+                name="q"
+                defaultValue={resolved.q ?? ""}
+                placeholder="Rechercher campagne"
+                className="w-[220px] rounded-[4px] border border-line bg-background px-3 py-1.5 text-xs text-foreground outline-none placeholder:text-faint"
+              />
+            </form>
+            <Link
+              href={allHref}
+              className="rounded-[4px] border border-line px-3 py-1.5 text-xs text-muted transition-colors hover:text-foreground"
+            >
+              Tous
+            </Link>
+            <Link
+              href={activeHref}
+              className="rounded-[4px] border border-line px-3 py-1.5 text-xs text-muted transition-colors hover:text-foreground"
+            >
+              Actifs
+            </Link>
+            <Link
+              href={createHref}
+              className="rounded-[4px] border border-line bg-foreground px-3 py-1.5 text-xs text-background"
+            >
             + Nouvelle campagne
-          </button>
+            </Link>
+          </div>
         </div>
 
         <div
@@ -68,7 +122,7 @@ export default function DashboardOffresPage() {
           <span className="text-right">CA</span>
         </div>
         <div className="divide-y divide-line">
-          {campaigns.map((row) => (
+          {filteredRows.map((row) => (
             <div
               key={row.nom}
               className="grid items-center gap-x-4 py-3 text-[13px]"
@@ -81,6 +135,9 @@ export default function DashboardOffresPage() {
               <span className="mono text-right text-foreground">{row.ca}</span>
             </div>
           ))}
+          {filteredRows.length === 0 ? (
+            <p className="py-5 text-sm text-muted">Aucune campagne correspondante.</p>
+          ) : null}
         </div>
       </div>
 
@@ -103,14 +160,49 @@ export default function DashboardOffresPage() {
         </div>
       </div>
 
-      <div>
-        <Link
-          href="/dashboard"
-          className="mono inline-flex rounded-[4px] border border-line px-3 py-1.5 text-[11px] uppercase tracking-[0.08em] text-muted transition-colors hover:text-foreground"
-        >
-          Retour a la vue d&apos;ensemble
-        </Link>
-      </div>
+      {showCreate ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <Link
+            href={closeCreateHref}
+            className="absolute inset-0 bg-foreground/45"
+            aria-label="Fermer le modal"
+          />
+          <div className="relative w-full max-w-xl rounded-[14px] border border-line bg-surface p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[16px] font-medium tracking-[-0.01em] text-foreground">Nouvelle campagne</p>
+                <p className="mt-1 text-xs text-muted">
+                  Configure une campagne promotionnelle multicanal.
+                </p>
+              </div>
+              <Link href={closeCreateHref} className="text-xs text-muted hover:text-foreground">
+                Fermer
+              </Link>
+            </div>
+            <div className="mt-4 grid gap-2 md:grid-cols-2">
+              <input className="rounded-[4px] border border-line bg-background px-3 py-2 text-xs" placeholder="Nom campagne" />
+              <input className="rounded-[4px] border border-line bg-background px-3 py-2 text-xs" placeholder="Canal" />
+              <input className="rounded-[4px] border border-line bg-background px-3 py-2 text-xs" placeholder="Code promo (optionnel)" />
+              <input className="rounded-[4px] border border-line bg-background px-3 py-2 text-xs" placeholder="Date de fin" />
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <Link
+                href={closeCreateHref}
+                className="rounded-[4px] border border-line px-3 py-1.5 text-xs text-muted transition-colors hover:text-foreground"
+              >
+                Annuler
+              </Link>
+              <button
+                type="button"
+                className="rounded-[4px] border border-line bg-foreground px-3 py-1.5 text-xs text-background"
+              >
+                Creer campagne
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
     </section>
   );
 }
