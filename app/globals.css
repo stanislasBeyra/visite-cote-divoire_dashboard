@@ -1,26 +1,122 @@
 @import "tailwindcss";
 
+/* Aligné sur .agents/skills/design-system-minimaliste.md — noir & blanc, pas d’ombres. */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0a0a0a;
+  --muted: #7a7a7a;
+  --faint: #b8b8b8;
+  --line: #ececec;
+  --hover: #f6f6f6;
+  --active: #f0f0f0;
+  --chip: #f4f4f4;
+  --surface: #ffffff;
+  --ease-ds: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --radius-sm: 7px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-line: var(--line);
+  --color-hover: var(--hover);
+  --color-active: var(--active);
+  --color-chip: var(--chip);
+  --color-surface: var(--surface);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-serif: var(--font-instrument-serif), ui-serif, Georgia, serif;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --background: #0a0a0a;
-    --foreground: #ededed;
+    --foreground: #ffffff;
+    --muted: #8a8a8a;
+    --faint: #4a4a4a;
+    --line: #1a1a1a;
+    --hover: #111111;
+    --active: #161616;
+    --chip: #141414;
+    --surface: #0f0f0f;
   }
 }
 
+html[data-theme="dark"],
+html.dark {
+  --background: #0a0a0a;
+  --foreground: #ffffff;
+  --muted: #8a8a8a;
+  --faint: #4a4a4a;
+  --line: #1a1a1a;
+  --hover: #111111;
+  --active: #161616;
+  --chip: #141414;
+  --surface: #0f0f0f;
+}
+
+html,
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+  letter-spacing: -0.005em;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Eyebrow (mono + pastille) — équivalent skill */
+.ds-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+}
+
+.ds-eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--foreground);
+}
+
+.ds-title-page {
+  font-weight: 500;
+  letter-spacing: -0.028em;
+  line-height: 1.08;
+}
+
+.ds-chip {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  background: var(--chip);
+  padding: 0.2rem 0.55rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--foreground);
+  transition: border-color 180ms var(--ease-ds), background 180ms var(--ease-ds);
+}
+
+.ds-link-quiet {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 13px;
+  transition: color 180ms var(--ease-ds), opacity 180ms var(--ease-ds);
+}
+
+.ds-link-quiet:hover {
+  color: var(--foreground);
 }
